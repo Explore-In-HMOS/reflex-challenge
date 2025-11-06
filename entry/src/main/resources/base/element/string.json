@@ -1,0 +1,62 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "module description"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "description"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "label"
+    },
+    {
+      "name": "title",
+      "value": "Quick Reflex Challenge"
+    }
+  ,
+    {
+      "name": "high_score",
+      "value": "High Score: %d"
+    }
+  ,
+    {
+      "name": "score",
+      "value": "Score: %d"
+    }
+  ,
+    {
+      "name": "final_score",
+      "value": "Final Score: %d"
+    }
+  ,
+    {
+      "name": "start",
+      "value": "Start"
+    }
+  ,
+    {
+      "name": "getready",
+      "value": "Get Ready..."
+    }
+  ,
+    {
+      "name": "punch",
+      "value": "Air Punch NOW!"
+    },
+    {
+      "name": "movefast",
+      "value": "Move your arm fast!"
+    },
+    {
+      "name": "roundover",
+      "value": "Round Complete!"
+    },
+    {
+      "name": "again",
+      "value": "Play Again"
+    }
+  ]
+}
