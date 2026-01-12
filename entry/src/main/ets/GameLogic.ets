@@ -29,7 +29,9 @@ export class GameLogic {
     this.onGameStart();
 
     // Start vibration sequence after random delay (1-2 seconds)
-    const randomDelay = 1000 + Math.random() * 1000;
+    const ms: number = Date.now();
+    const rnd = ms % 10
+    const randomDelay = 1000 + rnd * 1000;
     setTimeout(() => {
       this.playVibrationPattern();
     }, randomDelay);
@@ -37,18 +39,24 @@ export class GameLogic {
 
   private generateVibrationPattern() {
     // Generate 1-3 vibration pulses with random timing
-    this.expectedTapCount = Math.floor(Math.random() * 3) + 1;
+    const ms: number = Date.now();
+    const rnd = ms % 10
+    this.expectedTapCount = Math.floor(rnd * 3) + 1;
     this.vibrationPattern = [];
 
     for (let i = 0; i < this.expectedTapCount; i++) {
-      this.vibrationPattern.push(100 + Math.random() * 200); // 100-300ms vibrations
+      const ms: number = Date.now();
+      const rnd = ms % 10
+      this.vibrationPattern.push(100 + rnd * 200); // 100-300ms vibrations
     }
   }
 
   private async playVibrationPattern() {
     for (let duration of this.vibrationPattern) {
       await VibrationUtil.vibrate(duration);
-      await this.delay(200 + Math.random() * 300); // Random gaps between vibrations
+      const ms: number = Date.now();
+      const rnd = ms % 10
+      await this.delay(200 + rnd * 300); // Random gaps between vibrations
     }
   }
 

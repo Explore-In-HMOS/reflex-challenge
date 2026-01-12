@@ -5,8 +5,8 @@ import { BusinessError } from '@ohos.base';
 import { GameLogic } from '../GameLogic';
 import { VibrationUtil } from '../utils/VibrationUtil';
 import AudioManager from '../utils/SoundManager';
-import StorageManager from '../utils/StorageManager';
 import { common } from '@kit.AbilityKit';
+import { PreferencesManager } from '../utils/PreferencesManager';
 
 @Entry
 @Component
@@ -15,7 +15,6 @@ struct GamePage {
 
   @State gameLogic: GameLogic = new GameLogic();
   private audioManager: AudioManager = AudioManager.getInstance();
-  private storageManager: StorageManager = StorageManager.getInstance();
 
   @State countdown: number = 0;
   @State score: number = 0;
@@ -27,9 +26,12 @@ struct GamePage {
   private isSensorActive: boolean = false;
 
   async aboutToAppear() {
-    this.storageManager.initialize(this.context);
     // Load high score
-    this.highScore = await this.storageManager.getHighScore();
+    const tmpHighScore = await PreferencesManager.getInstance().get('highScore',0)
+    if (typeof tmpHighScore === 'number') {
+      this.highScore = tmpHighScore;
+    }
+
     this.gameLogic.setOnGameStart(() => {
       this.gameState = 'active';
       this.startAccelerometer();
@@ -40,7 +42,7 @@ struct GamePage {
       this.score = finalScore;
 
       if (finalScore > this.highScore) {
-        await this.storageManager.saveHighScore(finalScore);
+        PreferencesManager.getInstance().save('highScore', finalScore)
         this.highScore = finalScore;
         this.audioManager.playHighScoreSound();
       } else {
@@ -221,7 +223,6 @@ struct GamePage {
     // Simple shake detection - calculate total acceleration
     const totalAcceleration = Math.sqrt(data.x * data.x + data.y * data.y + data.z * data.z);
 
-    // Threshold for shake detection (adjust based on testing)
     const shakeThreshold = 15.0;
 
     return totalAcceleration > shakeThreshold && this.gameState === 'active';

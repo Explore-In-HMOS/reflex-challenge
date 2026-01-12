@@ -5,6 +5,7 @@
 A minimal wrist game that tests your reflexes using accelerometer and vibration timing.
 The player reacts as fast as possible after the watch vibrates. Each round lasts only a few seconds.# Preview
 
+# Preview
 <div>    
   <img src="screenshots/ss_1.png" width="24%">
   <img src="screenshots/ss_2.png" width="24%">

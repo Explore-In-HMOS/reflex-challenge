@@ -7,6 +7,8 @@ class AudioManager {
   private audioRenderer: audio.AudioRenderer | null = null;
   private isInitialized: boolean = false;
   private isMuted: boolean = false;
+  private isPlaying: boolean = false;
+  private sampleRate = 44100;
 
   private constructor() {}
 
@@ -31,7 +33,6 @@ class AudioManager {
       const audioRendererOptions: audio.AudioRendererOptions = {
         streamInfo: audioStreamInfo,
         rendererInfo: {
-          content: audio.ContentType.CONTENT_TYPE_SONIFICATION,
           usage: audio.StreamUsage.STREAM_USAGE_GAME,
           rendererFlags: 0
         }
@@ -84,35 +85,83 @@ class AudioManager {
   }
 
   private async playTone(frequency: number, duration: number): Promise<void> {
-    if (!this.isInitialized) {
-      await this.initialize();
-    }
-
-    if (!this.audioRenderer || this.isMuted) {
+    if (this.isPlaying) {
+      console.warn('Audio is already playing.');
       return;
     }
+    this.isPlaying = true;
 
     try {
-      const sampleRate = 44100;
-      const bufferSize = Math.floor((duration / 1000) * sampleRate);
-      const buffer = new ArrayBuffer(bufferSize);
-      const dataView = new DataView(buffer);
+      const audioRendererOptions: audio.AudioRendererOptions = {
+        streamInfo: {
+          samplingRate: audio.AudioSamplingRate.SAMPLE_RATE_44100,
+          channels: audio.AudioChannel.CHANNEL_1,
+          sampleFormat: audio.AudioSampleFormat.SAMPLE_FORMAT_F32LE,
+          encodingType: audio.AudioEncodingType.ENCODING_TYPE_RAW
+        },
+        rendererInfo: {
+          usage: audio.StreamUsage.STREAM_USAGE_RINGTONE,
+          rendererFlags: 0
+        }
+      };
 
-      for (let i = 0; i < bufferSize; i++) {
-        const sample = Math.sin(2 * Math.PI * frequency * i / sampleRate);
-        const byte = Math.floor((sample + 1) * 127);
-        dataView.setUint8(i, byte);
-      }
+      this.audioRenderer = await audio.createAudioRenderer(audioRendererOptions);
 
-      await this.audioRenderer.write(buffer);
+      this.audioRenderer.on('writeData', () => {
+
+        const sampleRate = 44100;
+        if (!this.audioRenderer) {return;}
+
+        try {
+
+          let bufferSize = Math.floor((duration / 1000) * sampleRate);
+          const buffer = new ArrayBuffer(bufferSize);
+          const floatView = new Float32Array(buffer);
+
+          const amplitude = 0.2;
+          const omega = 2 * Math.PI * frequency / sampleRate;
+
+          const samplesToGenerate = bufferSize / 4;
+
+          for (let i = 0; i < samplesToGenerate; i++) {
+            floatView[i] = amplitude * Math.sin(omega * i);
+          }
+
+        } catch (error) {
+          console.error('Error in writeData callback:', error);
+        }
+      });
+
+      await this.audioRenderer.start();
+
+      setTimeout(async () => {
+        await this.stopPlayback();
+      }, duration);
+
     } catch (error) {
-      console.error('Failed to play tone: ' + (error as BusinessError).message);
+      console.error('Error starting audio playback:', error);
+      this.isPlaying = false;
+    }
+  }
+
+  private async stopPlayback(): Promise<void> {
+    if (this.audioRenderer) {
+      try {
+        this.audioRenderer.off('writeData');
+
+        await this.audioRenderer.stop();
+        await this.audioRenderer.release();
+        this.audioRenderer = null;
+      } catch (error) {
+        console.error('Error stopping playback:', error);
+      } finally {
+        this.isPlaying = false;
+      }
     }
   }
 
   setMuted(muted: boolean): void {
     this.isMuted = muted;
-    console.info('AudioManager muted: ' + muted);
   }
 
   isAudioMuted(): boolean {
